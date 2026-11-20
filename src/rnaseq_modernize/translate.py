@@ -74,6 +74,9 @@ def apply(tool: Tool, args: list[str]) -> tuple[list[str], list[str], list[str],
     if layout is None:
         raise NotTranslated(f"unexpected number of positional arguments ({len(positionals)})")
     out = _fill(layout.out, dict(zip(layout.names, positionals, strict=True)))
+    if any(w.startswith("=") for w in out + [v for _, v in used if v]):
+        # zsh expands a leading = as a command lookup; shlex.join treats = as safe, so refuse
+        raise NotTranslated("a word starts with =")
     notes = list(tool.notes)
     warnings: list[str] = []
     unverified: list[str] = []
@@ -119,8 +122,6 @@ def translate_line(line_no: int, original: str, tools: dict[str, Tool]) -> Item:
         return Item(line_no, original, "error", reason=str(exc))
     if not toks:
         return Item(line_no, original, "blank")
-    if any(t.startswith("=") for t in toks):  # zsh expands a leading = as a command lookup
-        return Item(line_no, original, "not_translated", reason="word starts with =")
     tool = tools.get(os.path.basename(toks[0]))
     if tool is None:
         return Item(line_no, original, "not_translated", reason="unrecognised command")

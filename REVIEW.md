@@ -9,6 +9,7 @@ Date: 2026-11-20. Automated pass: ruff, `mypy --strict`, bandit clean. Review by
 | 3 | Untranslated lines exited 0; uncaught errors shared code 1 | Fixed: exit 3 for not translated; bad rule file exits 2 with message; documented in README |
 | 4 | Missing warnings: stdout default, accepted_hits.bam absent after HISAT2, FASTA input | Fixed: added to rule notes (FASTA and stringtie-stdout points phrased "verify", not asserted) |
 | 5 | Leading `=` expands in zsh | Fixed: word starting with `=` is not translated, test |
+| 5b | `--flag==foo` inline value starting with `=` bypassed the zsh guard (automated commit review) | Fixed: every emitted word and flag value is checked; tests |
 | 6 | Control characters (ESC) reached terminal via comment text | Fixed: lines with control characters not translated; emitter also replaces them with `?`; test |
 | 7 | Repeated flags emitted twice | Fixed: repeated flag is not translated, tests. Bowtie `-S` note reworded |
 | 8 | Loader accepted duplicate arities/flags and bad placeholders; bad TOML gave traceback; substitution relied on `{` in META | Fixed: validation at load, clean error, single-pass regex substitution, tests |

@@ -171,6 +171,9 @@ def test_comment_backslash_does_not_swallow_next_line() -> None:
         "tophat -i 50 -i 60 idx r.fq",
         "bowtie -t -t idx r.fq",
         "tophat idx =foo",
+        "tophat --min-intron-length==foo idx r.fq",
+        "tophat -N =foo idx r.fq",
+        "tophat -i =foo idx r.fq",
         "tophat idx r.fq\x1bc",
     ],
 )
