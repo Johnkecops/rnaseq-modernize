@@ -16,11 +16,11 @@ Threat model: the tool reads untrusted text and prints commands a person may pas
 | Static analysis | `bandit -r src` | 0 findings |
 | Lint and types | `ruff check`, `ruff format`, `mypy --strict` | Clean |
 | Dependencies | Zero runtime dependencies; `pip-audit` not applicable | n/a |
-| Secrets | `gitleaks` over full git history | see result line below |
+| Secrets | `gitleaks` over full git history | 0 leaks, 2 commits scanned (gitleaks, 2026-11-20) |
 | Data privacy | `fixtures/` holds only public BI021 example commands; no patient data, unpublished names or server paths | Pass (manual read) |
 | Claude Code hygiene | Fixtures treated as untrusted data in their own folder; never executed | Pass |
 | CI hardening, PyPI trusted publishing, 2FA | Not in v0.1.0 (no CI, no PyPI release) | Deferred |
 
 Known residual risk: rule content is unverified (`checked = false`), so a wrong flag mapping is a correctness risk, not a code-execution risk. The tool warns about this in its output.
 
-Report vulnerabilities by opening a private security advisory on the GitHub repository once it is public, or by emailing the maintainer listed in `pyproject.toml` / the repository profile.
+Report vulnerabilities through a private GitHub security advisory on the repository once it is public. The repository does not exist publicly yet.
