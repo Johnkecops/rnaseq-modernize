@@ -3,7 +3,7 @@
 legacy = "bowtie-build"
 modern = "bowtie2-build"
 versions = "Bowtie1 manual page dated 09/13/21; Bowtie2 manual v2.5.5"
-notes = ["Bowtie1 (.ebwt) and Bowtie2 (.bt2) indexes are different files. Rebuild the index; do not reuse the old one (inference from the two usage lines, verify)."]
+notes = ["Bowtie1 (.ebwt) and Bowtie2 (.bt2) indexes are different files. Rebuild the index; do not reuse the old one (file suffixes differ between the two manuals)."]
 
 [[layout]]
 names = ["ref", "base"]

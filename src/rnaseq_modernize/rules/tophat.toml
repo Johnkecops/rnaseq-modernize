@@ -5,9 +5,9 @@ modern = "hisat2"
 versions = "TopHat 2.1.1 (manual dated 2016-02-23); HISAT2 manual (no version shown on page)"
 notes = [
   "HISAT2 and TopHat are different aligners. Alignments, junctions and downstream FPKM/TPM will differ.",
-  "HISAT2 needs its own index: build it with hisat2-build. A Bowtie2 index from TopHat cannot be reused (inference, verify).",
+  "HISAT2 needs its own index from hisat2-build (files end .ht2; Bowtie2 indexes end .bt2). Rebuild it; the old index cannot be reused.",
   "HISAT2 writes one SAM file, not accepted_hits.bam. Sort and convert it with samtools before StringTie (samtools step not checked against its manual).",
-  "Check the read format and the output destination: TopHat detected read format itself and always wrote to a directory. Without -o, HISAT2 writes SAM to stdout. HISAT2 reads FASTQ by default, so FASTA reads need the format option from the HISAT2 manual (verify).",
+  "Check the read format and the output destination: TopHat accepted mixed FASTA/FASTQ input (since 2.0.10) and wrote to a directory. Without -S, HISAT2 writes SAM to stdout, and FASTA reads must be declared with its -f option.",
   "If the output feeds StringTie, the HISAT2 manual describes --dta for transcript-assembler-tailored alignments.",
 ]
 
@@ -40,7 +40,7 @@ names = ["--read-edit-dist"]
 takes_value = true
 modern = []
 closeness = "none"
-note = "TopHat discarded alignments above an edit distance. HISAT2 has no such cap. The NM:i SAM tag allows filtering after alignment (inference, verify)."
+note = "TopHat discarded alignments above an edit distance. HISAT2 has no such cap. The HISAT2 manual documents the NM:i (edit distance) SAM tag, which allows filtering after alignment."
 legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
 modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
 checked = false
@@ -100,7 +100,7 @@ names = ["-o"]
 takes_value = true
 modern = ["-S", "{value}/hisat2_out.sam"]
 closeness = "approximate"
-note = "TopHat wrote a directory. HISAT2 -S writes one SAM file. Create the directory first (mkdir -p). The file name hisat2_out.sam is this tool's choice, not from a manual."
+note = "TopHat wrote a directory. HISAT2 -S writes one SAM file. The HISAT2 manual does not say -S creates directories, so make sure out/ exists. The file name hisat2_out.sam is this tool's choice, not from a manual."
 legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
 modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
 checked = false

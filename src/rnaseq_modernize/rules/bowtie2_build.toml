@@ -3,7 +3,7 @@
 legacy = "bowtie2-build"
 modern = "bowtie2-build"
 versions = "Bowtie2 manual v2.5.5"
-notes = ["bowtie2-build is current. TopHat needed a Bowtie2 index; HISAT2 needs its own index from hisat2-build, so this index is not reusable for HISAT2 (inference, verify)."]
+notes = ["bowtie2-build is current. TopHat needed a Bowtie2 index; HISAT2 needs its own index from hisat2-build, so this index is not reusable for HISAT2 (index suffixes .bt2 vs .ht2 differ in the two manuals)."]
 
 [[layout]]
 names = ["ref", "base"]
