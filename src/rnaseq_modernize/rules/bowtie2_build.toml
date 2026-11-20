@@ -1,0 +1,13 @@
+# DRAFT rules. checked=false until a human has compared each rule with the cited manual.
+[tool]
+legacy = "bowtie2-build"
+modern = "bowtie2-build"
+versions = "Bowtie2 manual v2.5.5"
+notes = ["bowtie2-build is current. TopHat needed a Bowtie2 index; HISAT2 needs its own index from hisat2-build, so this index is not reusable for HISAT2 (inference, verify)."]
+
+[[layout]]
+names = ["ref", "base"]
+out = ["bowtie2-build", "{ref}", "{base}"]
+note = "Unchanged command."
+source = "https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml"
+checked = false

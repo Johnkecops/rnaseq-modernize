@@ -1,0 +1,40 @@
+# DRAFT rules. checked=false until a human has compared each rule with the cited manual.
+[tool]
+legacy = "bowtie"
+modern = "bowtie2"
+versions = "Bowtie1 manual page dated 09/13/21; Bowtie2 manual v2.5.5"
+notes = ["Bowtie2 is a different aligner from Bowtie1. Alignments and mapping rates will differ."]
+
+[[layout]]
+names = ["index", "reads"]
+out = ["bowtie2", "-x", "{index}", "-U", "{reads}"]
+note = "Output goes to stdout as SAM unless -S is given."
+source = "https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml"
+checked = false
+
+[[layout]]
+names = ["index", "reads", "out"]
+out = ["bowtie2", "-x", "{index}", "-U", "{reads}", "-S", "{out}"]
+note = "Bowtie1 wrote its native 8-column map format (SAM only with -S). Bowtie2 always writes SAM to the -S file. Rename the output file if its extension says .map."
+source = "https://bowtie-bio.sourceforge.net/manual.shtml"
+checked = false
+
+[[flag]]
+names = ["-t"]
+takes_value = false
+modern = ["-t"]
+closeness = "exact"
+note = "Timing report. Bowtie1: time per phase; Bowtie2: time to load index and align."
+legacy_source = "https://bowtie-bio.sourceforge.net/manual.shtml"
+modern_source = "https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml"
+checked = false
+
+[[flag]]
+names = ["-S"]
+takes_value = false
+modern = []
+closeness = "approximate"
+note = "In Bowtie1 -S is a switch for SAM output. Bowtie2 writes SAM by default and -S takes a file name, so the output positional becomes -S <file>."
+legacy_source = "https://bowtie-bio.sourceforge.net/manual.shtml"
+modern_source = "https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml"
+checked = false

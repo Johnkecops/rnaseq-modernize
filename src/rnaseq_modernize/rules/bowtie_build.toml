@@ -1,0 +1,13 @@
+# DRAFT rules. checked=false until a human has compared each rule with the cited manual.
+[tool]
+legacy = "bowtie-build"
+modern = "bowtie2-build"
+versions = "Bowtie1 manual page dated 09/13/21; Bowtie2 manual v2.5.5"
+notes = ["Bowtie1 (.ebwt) and Bowtie2 (.bt2) indexes are different files. Rebuild the index; do not reuse the old one (inference from the two usage lines, verify)."]
+
+[[layout]]
+names = ["ref", "base"]
+out = ["bowtie2-build", "{ref}", "{base}"]
+note = ""
+source = "https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml"
+checked = false

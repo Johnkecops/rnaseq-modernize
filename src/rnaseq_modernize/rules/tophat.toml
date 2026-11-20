@@ -1,0 +1,105 @@
+# DRAFT rules. checked=false until a human has compared each rule with the cited manual.
+[tool]
+legacy = "tophat"
+modern = "hisat2"
+versions = "TopHat 2.1.1 (manual dated 2016-02-23); HISAT2 manual (no version shown on page)"
+notes = [
+  "HISAT2 and TopHat are different aligners. Alignments, junctions and downstream FPKM/TPM will differ.",
+  "HISAT2 needs its own index: build it with hisat2-build. A Bowtie2 index from TopHat cannot be reused (inference, verify).",
+  "HISAT2 writes one SAM file, not accepted_hits.bam. Sort and convert it with samtools before StringTie (samtools step not checked against its manual).",
+  "If the output feeds StringTie, the HISAT2 manual describes --dta for transcript-assembler-tailored alignments.",
+]
+
+[[layout]]
+names = ["index", "reads"]
+out = ["hisat2", "-x", "{index}", "-U", "{reads}"]
+note = "Single-end reads."
+source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[layout]]
+names = ["index", "reads1", "reads2"]
+out = ["hisat2", "-x", "{index}", "-1", "{reads1}", "-2", "{reads2}"]
+note = "Paired-end reads."
+source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["-N", "--read-mismatches"]
+takes_value = true
+modern = []
+closeness = "none"
+note = "TopHat discarded alignments above a mismatch count. HISAT2 has no such hard cap; the nearest are score options (--mp, --score-min), not equivalent."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["--read-edit-dist"]
+takes_value = true
+modern = []
+closeness = "none"
+note = "TopHat discarded alignments above an edit distance. HISAT2 has no such cap. The NM:i SAM tag allows filtering after alignment (inference, verify)."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["--read-realign-edit-dist"]
+takes_value = true
+modern = []
+closeness = "none"
+note = "Controls TopHat's multi-stage re-alignment. HISAT2 has no equivalent stages."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["-i", "--min-intron-length"]
+takes_value = true
+modern = ["--min-intronlen", "{value}"]
+closeness = "approximate"
+note = "Same concept. Defaults differ (TopHat 70, HISAT2 20)."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["-I", "--max-intron-length"]
+takes_value = true
+modern = ["--max-intronlen", "{value}"]
+closeness = "approximate"
+note = "Same concept and same default (500000). TopHat's exception for split-segment-supported long reads has no documented HISAT2 counterpart."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["--max-coverage-intron"]
+takes_value = true
+modern = []
+closeness = "none"
+note = "Applies to TopHat's separate coverage-search stage, which HISAT2 does not have. --max-intronlen applies to all spliced alignments and is not the same."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["-M", "--prefilter-multihits"]
+takes_value = false
+modern = []
+closeness = "none"
+note = "Only matters in TopHat's transcriptome-mapping mode, which HISAT2 does not have (inference, verify)."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false
+
+[[flag]]
+names = ["-o"]
+takes_value = true
+modern = ["-S", "{value}/hisat2_out.sam"]
+closeness = "approximate"
+note = "TopHat wrote a directory. HISAT2 -S writes one SAM file. Create the directory first (mkdir -p). The file name hisat2_out.sam is this tool's choice, not from a manual."
+legacy_source = "https://ccb.jhu.edu/software/tophat/manual.shtml"
+modern_source = "https://daehwankimlab.github.io/hisat2/manual/"
+checked = false

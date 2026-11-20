@@ -1,0 +1,27 @@
+# DRAFT rules. checked=false until a human has compared each rule with the cited manual.
+[tool]
+legacy = "cufflinks"
+modern = "stringtie"
+versions = "Cufflinks manual page (no version shown, (c) 2017); StringTie manual (no version shown) and GitHub README"
+notes = [
+  "StringTie and Cufflinks are different assemblers. Transcripts and expression values will differ.",
+  "Both need coordinate-sorted alignments. Sort HISAT2 output with samtools first.",
+  "StringTie reports TPM as well as FPKM. No documented StringTie replacement for genes.fpkm_tracking or isoforms.fpkm_tracking was found: gene abundances are written with -A, transcript values are in the -o GTF (both mappings are inference, verify).",
+]
+
+[[layout]]
+names = ["bam"]
+out = ["stringtie", "{bam}"]
+note = ""
+source = "https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual"
+checked = false
+
+[[flag]]
+names = ["-o"]
+takes_value = true
+modern = ["-o", "{value}/transcripts.gtf"]
+closeness = "approximate"
+note = "Cufflinks -o is an output directory (as used in the BI021 protocol; the fetched Cufflinks manual page did not show it, verify). StringTie -o is a GTF file name, so the directory must exist and the file name transcripts.gtf is this tool's choice."
+legacy_source = "https://cole-trapnell-lab.github.io/cufflinks/cufflinks/index.html"
+modern_source = "https://ccb.jhu.edu/software/stringtie/index.shtml?t=manual"
+checked = false
