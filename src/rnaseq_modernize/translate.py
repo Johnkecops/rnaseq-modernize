@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shlex
 from dataclasses import dataclass, field
 
@@ -30,18 +31,18 @@ class Item:
     unverified: list[str] = field(default_factory=list)
 
 
+_PLACEHOLDER = re.compile(r"\{(\w+)\}")
+
+
 def _fill(template: tuple[str, ...], values: dict[str, str]) -> list[str]:
-    out = []
-    for elem in template:
-        for key, val in values.items():
-            elem = elem.replace("{" + key + "}", val)  # never str.format: input is untrusted
-        out.append(elem)
-    return out
+    # single pass, so a substituted value is never re-scanned; never str.format (untrusted input)
+    return [_PLACEHOLDER.sub(lambda m: values.get(m.group(1), m.group(0)), e) for e in template]
 
 
 def apply(tool: Tool, args: list[str]) -> tuple[list[str], list[str], list[str], list[str]]:
     positionals: list[str] = []
     used: list[tuple[str, str | None]] = []
+    seen: set[int] = set()
     i = 0
     while i < len(args):
         tok = args[i]
@@ -53,6 +54,9 @@ def apply(tool: Tool, args: list[str]) -> tuple[list[str], list[str], list[str],
         flag = tool.flags.get(name)
         if flag is None:
             raise NotTranslated(f"unknown flag {name}")
+        if id(flag) in seen:
+            raise NotTranslated(f"flag {name} given more than once")
+        seen.add(id(flag))
         if not flag.takes_value:
             if eq:
                 raise NotTranslated(f"flag {name} takes no value")
@@ -64,6 +68,8 @@ def apply(tool: Tool, args: list[str]) -> tuple[list[str], list[str], list[str],
             i += 1
         else:
             raise NotTranslated(f"flag {name} needs a value")
+        if flag.takes_value and not used[-1][1]:
+            raise NotTranslated(f"flag {name} has an empty value")
     layout = tool.layouts.get(len(positionals))
     if layout is None:
         raise NotTranslated(f"unexpected number of positional arguments ({len(positionals)})")
@@ -105,12 +111,16 @@ def translate_line(line_no: int, original: str, tools: dict[str, Tool]) -> Item:
             "not_translated",
             reason="shell operators or expansion characters present: " + " ".join(bad),
         )
+    if any(not (c.isprintable() or c == "\t") for c in s):
+        return Item(line_no, original, "not_translated", reason="control characters present")
     try:
         toks = shlex.split(s)
     except ValueError as exc:
         return Item(line_no, original, "error", reason=str(exc))
     if not toks:
         return Item(line_no, original, "blank")
+    if any(t.startswith("=") for t in toks):  # zsh expands a leading = as a command lookup
+        return Item(line_no, original, "not_translated", reason="word starts with =")
     tool = tools.get(os.path.basename(toks[0]))
     if tool is None:
         return Item(line_no, original, "not_translated", reason="unrecognised command")
@@ -130,7 +140,7 @@ def translate_text(text: str, tools: dict[str, Tool]) -> list[Item]:
     for no, raw in enumerate(text.splitlines(), 1):
         if not buf:
             start = no
-        if raw.endswith("\\"):
+        if raw.endswith("\\") and (buf or not raw.lstrip().startswith("#")):
             buf.append(raw[:-1].strip())
             continue
         buf.append(raw.strip())

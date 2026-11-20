@@ -12,6 +12,11 @@ DISCLAIMER = (
 )
 
 
+def _safe(text: str) -> str:
+    """Make text safe to print into a comment: no control characters reach the terminal."""
+    return "".join(c if c.isprintable() else " " if c == "\t" else "?" for c in text)
+
+
 def _unverified(items: list[Item]) -> list[str]:
     return sorted({u for it in items for u in it.unverified})
 
@@ -25,17 +30,19 @@ def render_text(items: list[Item]) -> str:
         if it.status == "blank":
             out.append("")
         elif it.status == "comment":
-            out.append(it.original)
+            out.append(_safe(it.original))
         elif it.status == "translated":
             out.append(f"# line {it.line_no}: translated")
-            out.append(f"# legacy: {it.original}")
+            out.append(f"# legacy: {_safe(it.original)}")
             out.append(it.output)
             out += [f"# note: {n}" for n in it.notes]
             out += [f"# WARNING: {w}" for w in it.warnings]
         else:
             label = "ERROR" if it.status == "error" else "NOT TRANSLATED, check manually"
-            out.append(f"# line {it.line_no}: {label} ({it.reason})")
-            out.append(f"# {it.original}")  # kept literally but commented out: never runnable
+            out.append(f"# line {it.line_no}: {label} ({_safe(it.reason)})")
+            out.append(
+                f"# {_safe(it.original)}"
+            )  # kept literally but commented out: never runnable
     return "\n".join(out) + "\n"
 
 

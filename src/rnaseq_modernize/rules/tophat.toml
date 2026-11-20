@@ -7,6 +7,7 @@ notes = [
   "HISAT2 and TopHat are different aligners. Alignments, junctions and downstream FPKM/TPM will differ.",
   "HISAT2 needs its own index: build it with hisat2-build. A Bowtie2 index from TopHat cannot be reused (inference, verify).",
   "HISAT2 writes one SAM file, not accepted_hits.bam. Sort and convert it with samtools before StringTie (samtools step not checked against its manual).",
+  "Check the read format and the output destination: TopHat detected read format itself and always wrote to a directory. Without -o, HISAT2 writes SAM to stdout. HISAT2 reads FASTQ by default, so FASTA reads need the format option from the HISAT2 manual (verify).",
   "If the output feeds StringTie, the HISAT2 manual describes --dta for transcript-assembler-tailored alignments.",
 ]
 

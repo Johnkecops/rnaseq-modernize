@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import tomllib
 
 from .emit import render_json, render_text
 from .rules import load_tools
@@ -46,7 +47,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: cannot read input: {exc}", file=sys.stderr)
         return 2
 
-    items = translate_text(text, load_tools())
+    try:
+        tools = load_tools()
+    except (OSError, ValueError, TypeError, tomllib.TOMLDecodeError) as exc:
+        print(f"error: bad rule file: {exc}", file=sys.stderr)
+        return 2
+    items = translate_text(text, tools)
     result = render_json(items) if args.json else render_text(items)
 
     if args.output:
@@ -61,7 +67,9 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     else:
         sys.stdout.write(result)
-    return 1 if any(it.status == "error" for it in items) else 0
+    if any(it.status == "error" for it in items):
+        return 1
+    return 3 if any(it.status == "not_translated" for it in items) else 0
 
 
 if __name__ == "__main__":

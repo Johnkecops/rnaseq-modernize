@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -76,6 +77,17 @@ def _bool(d: dict[str, object], key: str) -> bool:
     return v
 
 
+_PLACEHOLDER = re.compile(r"\{(\w+)\}")
+
+
+def _check_placeholders(
+    template: tuple[str, ...], allowed: set[str], where: str, *, exact: bool = True
+) -> None:
+    used = {m for e in template for m in _PLACEHOLDER.findall(e)}
+    if used != allowed if exact else not used <= allowed:
+        raise ValueError(f"{where}: placeholders {sorted(used)} do not match {sorted(allowed)}")
+
+
 def parse_tool(data: dict[str, object]) -> Tool:
     meta = data.get("tool")
     if not isinstance(meta, dict):
@@ -88,9 +100,13 @@ def parse_tool(data: dict[str, object]) -> Tool:
     )
     for lay in data.get("layout", []):  # type: ignore[attr-defined]
         names = _strs(lay, "names")
-        tool.layouts[len(names)] = Layout(
+        if len(names) in tool.layouts:
+            raise ValueError(f"{tool.legacy}: duplicate layout for {len(names)} positionals")
+        layout = Layout(
             names, _strs(lay, "out"), _str(lay, "note"), _str(lay, "source"), _bool(lay, "checked")
         )
+        _check_placeholders(layout.out, set(names), f"{tool.legacy} layout")
+        tool.layouts[len(names)] = layout
     for fl in data.get("flag", []):  # type: ignore[attr-defined]
         closeness = _str(fl, "closeness")
         if closeness not in CLOSENESS:
@@ -105,7 +121,11 @@ def parse_tool(data: dict[str, object]) -> Tool:
             _str(fl, "modern_source"),
             _bool(fl, "checked"),
         )
+        allowed = {"value"} if flag.takes_value else set()
+        _check_placeholders(flag.modern, allowed, flag.names[0], exact=False)
         for name in flag.names:
+            if name in tool.flags:
+                raise ValueError(f"{tool.legacy}: duplicate flag {name}")
             tool.flags[name] = flag
     return tool
 

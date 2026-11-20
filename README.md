@@ -25,14 +25,14 @@ cat legacy_script.sh | rnaseq-modernize -f -    # stdin
 rnaseq-modernize -f legacy_script.sh --json -o result.json   # JSON, new file only (--force to overwrite)
 ```
 
-Output is plain text: translated commands on their own lines, everything else as `#` comments. Exit codes: 0 ok, 1 an input line was malformed (for example unbalanced quotes), 2 usage or I/O error.
+Output is plain text: translated commands on their own lines, everything else as `#` comments. Exit codes: 0 all lines translated (or comments/blank), 1 a line was malformed (for example unbalanced quotes), 2 usage, I/O or rule-file error, 3 at least one line was not translated.
 
 ## Limits (read before use)
 
 - **Results will differ.** HISAT2, StringTie and Bowtie2 are different algorithms from TopHat, Cufflinks and Bowtie. Translated commands do not reproduce legacy results. No benchmark has been run.
 - **Only flags used in BI021 are covered.** Any other flag makes the whole command "not translated, check manually". The tool never guesses.
 - **Flags without an equivalent are dropped with a warning** (for example TopHat `-N`, `--read-edit-dist`, `--read-realign-edit-dist`, `--max-coverage-intron`, `-M`).
-- **Lines containing shell operators or expansion characters are not translated**: `; & | < > ( ) \` $ * ? [ ] { } ~ \ # !`. That includes pipes, redirects, `$VAR`, globs, inline comments and several commands on one line. Split such lines by hand. Untranslated lines are kept literally but commented out so they cannot run when pasted.
+- **Lines containing shell operators or expansion characters are not translated**: `; & | < > ( ) \` $ * ? [ ] { } ~ \ # !`. That includes pipes, redirects, `$VAR`, globs, inline comments and several commands on one line. Lines with control characters, a word starting with `=`, a repeated flag or an empty flag value are also refused. Split such lines by hand. Untranslated lines are kept literally but commented out so they cannot run when pasted.
 - Line continuations with a trailing backslash are joined. Paired-end reads (two read files) are supported for TopHat only.
 - Not covered: R/edgeR code, GSEA, `cuffmerge`/`cuffdiff`, Salmon workflows, Markdown output.
 - Not tested on Linux. No CI yet.

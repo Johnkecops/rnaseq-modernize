@@ -5,6 +5,7 @@ modern = "stringtie"
 versions = "Cufflinks manual page (no version shown, (c) 2017); StringTie manual (no version shown) and GitHub README"
 notes = [
   "StringTie and Cufflinks are different assemblers. Transcripts and expression values will differ.",
+  "The input accepted_hits.bam is a TopHat output and will not exist after a HISAT2 run; use the sorted BAM made from the HISAT2 SAM. Without -o, check where StringTie writes its GTF (verify in its manual).",
   "Both need coordinate-sorted alignments. Sort HISAT2 output with samtools first.",
   "StringTie reports TPM as well as FPKM. No documented StringTie replacement for genes.fpkm_tracking or isoforms.fpkm_tracking was found: gene abundances are written with -A, transcript values are in the -o GTF (both mappings are inference, verify).",
 ]

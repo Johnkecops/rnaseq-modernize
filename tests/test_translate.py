@@ -8,7 +8,7 @@ import pytest
 
 from rnaseq_modernize.cli import main
 from rnaseq_modernize.rules import load_tools
-from rnaseq_modernize.translate import META, translate_text
+from rnaseq_modernize.translate import translate_text
 
 TOOLS = load_tools()
 ROOT = Path(__file__).parent.parent
@@ -113,6 +113,10 @@ def test_hostile_not_translated(line: str, tmp_path: Path, monkeypatch: pytest.M
     assert it.status == "not_translated"
     assert it.original == line.strip()
     assert not (tmp_path / "PWNED").exists()
+    from rnaseq_modernize.emit import render_text
+
+    live = [x for x in render_text([it]).splitlines() if x and not x.startswith("#")]
+    assert live == []  # nothing runnable is emitted for an untranslated line
 
 
 def test_unbalanced_quote_is_error_exit_1(capsys: pytest.CaptureFixture[str]) -> None:
@@ -147,9 +151,71 @@ def test_null_and_control_bytes_no_crash() -> None:
             assert it.status in {"translated", "not_translated", "error", "blank"}
 
 
-def test_template_injection_impossible() -> None:
-    # braces are in META so a value cannot smuggle a placeholder into a later substitution
-    assert "{" in META and one("tophat idx {value}.fq").status == "not_translated"
+def test_fill_is_single_pass() -> None:
+    from rnaseq_modernize.translate import _fill
+
+    assert _fill(("-x", "{a}"), {"a": "{b}", "b": "X"}) == ["-x", "{b}"]
+
+
+def test_comment_backslash_does_not_swallow_next_line() -> None:
+    items = translate_text("# note \\\ncufflinks a.bam\n", TOOLS)
+    assert [i.status for i in items] == ["comment", "translated"]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "cufflinks -o '' a.bam",
+        "tophat -o '' idx r.fq",
+        "tophat --min-intron-length= idx r.fq",
+        "tophat -i 50 -i 60 idx r.fq",
+        "bowtie -t -t idx r.fq",
+        "tophat idx =foo",
+        "tophat idx r.fq\x1bc",
+    ],
+)
+def test_review_regressions_not_translated(line: str) -> None:
+    assert one(line).status == "not_translated"
+
+
+def test_leading_dash_value_is_taken_as_value() -> None:
+    assert one("tophat -i -5 idx r.fq").output == "hisat2 -x idx -U r.fq --min-intronlen -5"
+
+
+def test_control_chars_never_reach_output() -> None:
+    from rnaseq_modernize.emit import render_text
+
+    text = render_text(translate_text("foo \x1b[31m red\n", TOOLS))
+    assert "\x1b" not in text
+
+
+def test_exit_code_not_translated(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["samtools sort a.bam"]) == 3
+    assert main(["# only a comment"]) == 0
+
+
+def test_bad_rule_file_clean_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from rnaseq_modernize import cli
+    from rnaseq_modernize.rules import load_tools as real
+
+    (tmp_path / "x.toml").write_text("[tool]\nlegacy = 1\n")
+    monkeypatch.setattr(cli, "load_tools", lambda: real(tmp_path))
+    assert main(["tophat idx r.fq"]) == 2
+    assert "bad rule file" in capsys.readouterr().err
+
+
+def test_rule_loader_rejects_bad_placeholder_and_duplicates() -> None:
+    from rnaseq_modernize.rules import parse_tool
+
+    base = {"tool": {"legacy": "t", "modern": "m", "versions": "v", "notes": []}}
+    lay = {"names": ["a"], "out": ["m", "{b}"], "note": "", "source": "https://x", "checked": False}
+    with pytest.raises(ValueError, match="placeholders"):
+        parse_tool({**base, "layout": [lay]})
+    ok = {**lay, "out": ["m", "{a}"]}
+    with pytest.raises(ValueError, match="duplicate layout"):
+        parse_tool({**base, "layout": [ok, ok]})
 
 
 def test_output_file_no_overwrite(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -209,6 +275,8 @@ def test_every_flag_rule_is_exercised() -> None:
             args = [name] + (["7"] if flag.takes_value else []) + base
             it = translate_text(f"{tool.legacy} " + " ".join(args), TOOLS)[0]
             assert it.status == "translated", (tool.legacy, name, it.reason)
+            if flag.modern:
+                assert flag.modern[0] in it.output.split(), (tool.legacy, name)
 
 
 @pytest.mark.skipif(os.environ.get("RELEASE_GATE") != "1", reason="release gate only")
